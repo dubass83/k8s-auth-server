@@ -1,26 +1,348 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8">
+    <meta name="google" content="notranslate">
+    <meta http-equiv="Content-Language" content="en">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
-        <!-- font awesome from BootstrapCDN -->
-        <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
-        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
-        <link href="/public/app.css" rel="stylesheet">
-    </head>
-    <body class="home">
-        <div class="container">
-            <div class="login-page clearfix">
-                <div class="logged-in-box auth0-box logged-in">
-                    <h1 id="logo"><img src="//cdn.auth0.com/samples/auth0_logo_final_blue_RGB.png" /></h1>
-                    <img class="avatar" src="{{userinfo['picture']}}"/>
-                    <h2>Welcome {{userinfo['name']}}</h2>
-                    <pre>{{userinfo_pretty}}</pre>
-                    <pre>id_token: {{id_token}}</pre>
-                    <a class="btn btn-primary btn-lg btn-logout btn-block" href="/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/">Access UI</a>
-                    <a class="btn btn-primary btn-lg btn-logout btn-block" href="/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard">Access UI (1.7.x)</a>
-                    <a class="btn btn-primary btn-lg btn-logout btn-block" href="/logout">Logout</a>
-                </div>
-            </div>
+    <title>Kubernetes Configuration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/public/main.css" rel="stylesheet" type="text/css">
+    <link href="/public/styles.css" rel="stylesheet" type="text/css">
+    <link href="/public/tabs.css" rel="stylesheet" type="text/css">
+    <link rel="icon" href="/public/favicon.png">
+  </head>
+
+<body class="theme-body">
+  <div class="theme-navbar">
+    {{ if logo_url }}
+    <div class="theme-navbar__logo-wrap">
+        <img class="theme-navbar__logo" src="{{ logo_url }}"/>
+    </div>
+    {{ end }}
+  </div>
+
+  <div class="dex-kubeconfig-container">
+    <div class="theme-panel">
+      <div style="float:right">
+        <a href="/login">Login Again</a>
+      </div>
+      <h2 class="theme-heading">Generated Kubernetes Token - {{ k8s_ui_host }}</h2>
+
+      <div>
+
+        <p>Please check that you have been assigned to the expected Groups, then follow the instructions
+          based on your OS.
+        </p>
+
+        <div class="groups">
+        <pre><code>{{ userinfo_pretty }}</code></pre>
         </div>
-    </body>
+
+        <div class="tab">
+          <button class="tablinks active" onclick="openTab(event, 'Linux')">Linux</button>
+          <button class="tablinks" onclick="openTab(event, 'MacOS')">MacOS</button>
+          <button class="tablinks" onclick="openTab(event, 'Windows')">Windows</button>
+        </div>
+
+        <div id="Linux" class="tabcontent" style="display: block">
+          
+            <h3>Install and Set Up kubectl</h3>
+            <div>
+            See 
+            <a title="Install and setup kubectl" href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">
+              https://kubernetes.io/docs/tasks/tools/install-kubectl
+            </a>
+            {{ if kubectl_version }}
+            <p>
+            Download kubectl:
+            <a title="Download kubectl" href="https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl">
+              https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl
+            </a>
+            </p>
+            {{ end }}
+            </div>
+
+            {{ if .IDPCaURI }}
+            <h3>Copy IDP CA Certificate From URL</h3>
+        
+            <p>Copy this CA Certificate and download it to your .kube directory</p>
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              </button>
+              <pre><code>curl --create-dirs -s {{ .IDPCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt</code></pre>
+            </div>
+          {{ end }}
+        
+          {{ if .IDPCaPem }}
+            <h3>Copy IDP CA Certificate From PEM</h3>
+        
+            <p>Put the CA Certificate into your .kube directory</p>
+        
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              </button>
+              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
+              {{ .IDPCaPem }}
+              EOF</code></pre>
+            </div>
+          {{ end }}
+        
+        
+          {{ if .K8sCaURI }}
+            <h3>Copy Kubernetes CA Certificate From URL</h3>
+        
+            <p>Copy this CA Certificate and download it to your .kube directory</p>
+            <div class="command">
+        
+              <button class="btn" style="float: right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              </button>
+              <pre><code>curl --create-dirs -s {{ .K8sCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt</code></pre>
+            </div>
+          {{ end }}
+        
+          {{ if .K8sCaPem }}
+            <h3>Copy Kubernetes CA Certificate From PEM</h3>
+        
+            <p>Put the CA Certificate into your .kube directory</p>
+        
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              </button>
+              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt
+        {{ .K8sCaPem }}
+        EOF</code></pre>
+            </div>
+          {{ end }}
+        
+          <h3>Run configuration commands</h3>
+        
+          <p>These commands will update <tt>~/.kube/config</tt></p>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt="">
+            </button>
+          <pre><code>kubectl config set-cluster {{ .ClusterName }} \
+            --certificate-authority=${HOME}/.kube/certs/{{ .ClusterName}}/k8s-ca.crt \
+            --server={{ .K8sMasterURI }}</code></pre>
+          </div>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+            </button>
+          <pre><code>kubectl config set-credentials {{ .Username }}-{{ .ClusterName }} \
+            --auth-provider=oidc \
+            --auth-provider-arg=idp-issuer-url={{ .Issuer }} \
+            --auth-provider-arg=client-id={{ .ClientID }} \
+            --auth-provider-arg=client-secret={{ .ClientSecret }} \
+            --auth-provider-arg=refresh-token={{ .RefreshToken }} \
+            --auth-provider-arg=id-token={{ .IDToken }}
+          {{- if or (.IDPCaURI) (.IDPCaPem) }} \
+            --auth-provider-arg=idp-certificate-authority=${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
+          {{- end }}</code></pre>
+          </div>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt="">
+            </button>
+            <pre><code class="hljs">kubectl config set-context {{ .Username }}-{{ .ClusterName }} \
+            --cluster={{ .ClusterName }} \
+            --user={{ .Username}}-{{.ClusterName }}</code></pre>
+          </div>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+            </button>
+            <pre><code class="hljs">kubectl config use-context {{ .Username }}-{{ .ClusterName}}</code></pre>
+          </div>
+
+        </div>
+          
+        <div id="MacOS" class="tabcontent">
+          
+            <h3>Install and Set Up kubectl</h3>
+            <div>
+            See 
+            <a title="Install and setup kubectl" href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">
+              https://kubernetes.io/docs/tasks/tools/install-kubectl
+            </a>
+            {{ if .KubectlVersion }}
+            <p>
+            Download kubectl:
+            <a title="Download kubectl" href="https://storage.googleapis.com/kubernetes-release/release/{{.KubectlVersion}}/bin/darwin/amd64/kubectl">
+              https://storage.googleapis.com/kubernetes-release/release/{{.KubectlVersion}}/bin/darwin/amd64/kubectl
+            </a>
+            </p>
+            {{ end }}
+            </div>
+            {{ template "linux-mac-common" . }
+
+        </div>
+        
+        <div id="Windows" class="tabcontent">
+          
+            <h3>Install and Set Up kubectl</h3>
+            <div>
+            See
+            <a title="Install and setup kubectl" href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">
+              https://kubernetes.io/docs/tasks/tools/install-kubectl
+            </a>
+        
+            {{ if .KubectlVersion }}
+            <p>
+            Download kubectl:
+            <a title="Download kubectl" href="https://storage.googleapis.com/kubernetes-release/release/{{.KubectlVersion}}/bin/windows/amd64/kubectl.exe">
+              https://storage.googleapis.com/kubernetes-release/release/{{.KubectlVersion}}/bin/windows/amd64/kubectl.exe
+            </a>
+            </p>
+            {{ end }}
+          </div>
+        
+          {{ if .IDPCaURI }}
+            <h3>Copy IDP CA Certificate From URL</h3>
+        
+            <p>Copy this CA Certificate and download it to your .kube directory</p>
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              </button>
+        
+              <pre><code>curl --create-dirs -s {{ .IDPCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt</code></pre>
+            </div>
+          {{ end }}
+        
+          {{ if .IDPCaPem }}
+            <h3>Copy IDP CA From Pem</h3>
+        
+            <p>Put the CA Certificate into your .kube directory</p>
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              </button>
+        
+              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
+        {{ .IDPCaPem}}
+        EOF</code></pre>
+            </div>
+          {{ end }}
+        
+        
+          {{ if .K8sCaURI }}
+            <h3>Copy Kubernetes CA Certificate From URL</h3>
+        
+            <p>Copy this CA Certificate and download it to your .kube directory</p>
+            <div class="command">
+        
+              <button class="btn" style="float: right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              </button>
+              <pre><code>curl --create-dirs -s {{ .K8sCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt</code></pre>
+            </div>
+          {{ end }}
+        
+          {{ if .K8sCaPem }}
+            <h3>Copy Kubernetes CA Certificate From PEM</h3>
+        
+            <p>Put the CA Certificate into your .kube directory</p>
+        
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              </button>
+              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt
+        {{ .K8sCaPem }}
+        EOF</code></pre>
+            </div>
+          {{ end }}
+        
+          <h3>Run configuration commands</h3>
+        
+          <p>These commands will update <tt>~/.kube/config</tt></p>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt="">
+            </button>
+          <pre><code>kubectl config set-cluster {{ .ClusterName }} --certificate-authority=${HOME}/.kube/certs/{{ .ClusterName}}/k8s-ca.crt --server={{ .K8sMasterURI }}</code></pre>
+          </div>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+            </button>
+          <pre><code>kubectl config set-credentials {{ .Username }}-{{ .ClusterName }} --auth-provider=oidc --auth-provider-arg=idp-issuer-url={{ .Issuer }} --auth-provider-arg=client-id={{ .ClientID }} --auth-provider-arg=client-secret={{ .ClientSecret }} --auth-provider-arg=refresh-token={{ .RefreshToken }} --auth-provider-arg=id-token={{ .IDToken }}
+          {{- if or (.IDPCaURI) (.IDPCaPem) }} --auth-provider-arg=idp-certificate-authority=${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
+          {{- end }}</code></pre>
+          </div>
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt="">
+            </button>
+            <pre><code class="hljs">kubectl config set-context {{ .Username }}-{{ .ClusterName }} --cluster={{ .ClusterName }} --user={{ .Username}}-{{.ClusterName }}</code></pre>
+          </div>
+        
+          <div class="command">
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+            </button>
+            <pre><code class="hljs">kubectl config use-context {{ .Username }}-{{ .ClusterName}}</code></pre>
+          </div>
+
+        </div>
+    </div>
+  </div>
+
+  <script src="/public/highlight.pack.min.js"></script>
+  <script src="/public/clipboard.min.js"></script>
+  <script src="/public/snippets.js"></script>
+  <script src="/public/tooltips.js"></script>
+  <script>
+      var clipboard = new ClipboardJS('.btn');
+      clipboard.on('success', function(e) {
+          console.log(e);
+      });
+      clipboard.on('error', function(e) {
+          console.log(e);
+      });
+  </script>
+
+  <script>
+      function openTab(evt, tabName) {
+          var i, tabcontent, tablinks;
+          tabcontent = document.getElementsByClassName("tabcontent");
+          for (i = 0; i < tabcontent.length; i++) {
+              tabcontent[i].style.display = "none";
+          }
+          tablinks = document.getElementsByClassName("tablinks");
+          for (i = 0; i < tablinks.length; i++) {
+              tablinks[i].className = tablinks[i].className.replace(" active", "");
+          }
+          document.getElementById(tabName).style.display = "block";
+          evt.currentTarget.className += " active";
+      }
+  </script>
+
+</body>
 </html>

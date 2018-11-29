@@ -37,6 +37,9 @@ AUTH0_AUDIENCE = env.get(constants.API_ID)
 AUTH0_CONNECTION = env.get(constants.AUTH0_CONNECTION)
 APP_HOST = env.get(constants.APP_HOST)
 KUBERNETES_UI_HOST = env.get(constants.KUBERNETES_UI_HOST)
+K8S_CA = env.get(constants.K8S_CA)
+LOGO_URL = env.get(constants.LOGO_URL)
+KUBECTL_VERSION = env.get(constants.KUBECTL_VERSION)
 
 APP = Flask(__name__, static_url_path='/public', static_folder='./public')
 APP.secret_key = constants.SECRET_KEY
@@ -132,41 +135,44 @@ def dashboard():
     return render_template('dashboard.html',
                            userinfo=session[constants.PROFILE_KEY],
                            id_token=session[constants.ID_TOKEN],
-                           userinfo_pretty=json.dumps(session[constants.JWT_PAYLOAD], indent=4))
+                           userinfo_pretty=json.dumps(session[constants.JWT_PAYLOAD], indent=4),
+                           logo_url=LOGO_URL, 
+                           k8s_ui_host=KUBERNETES_UI_HOST,
+                           kubectl_version=KUBECTL_VERSION )
 
-@APP.route('/ui', defaults={'path': ''})
-@APP.route('/api', defaults={'path': ''})
-@APP.route('/api/<path:path>')
-@requires_auth
-def proxy_ui(path):
-    # add bearer token
-    new_headers = {key: value for (key, value) in request.headers if key != 'Host'}
-    new_headers['Authorization'] = 'Bearer ' +session[constants.ID_TOKEN]
+# @APP.route('/ui', defaults={'path': ''})
+# @APP.route('/api', defaults={'path': ''})
+# @APP.route('/api/<path:path>')
+# @requires_auth
+# def proxy_ui(path):
+#     # add bearer token
+#     new_headers = {key: value for (key, value) in request.headers if key != 'Host'}
+#     new_headers['Authorization'] = 'Bearer ' +session[constants.ID_TOKEN]
 
-    url = request.url.replace(APP_HOST, KUBERNETES_UI_HOST).replace('http://', 'https://')
-    try: 
-      resp = requests.request(
-          method=request.method,
-          url=url,
-          headers=new_headers,
-          data=request.get_data(),
-          cookies=request.cookies,
-          allow_redirects=False,
-          verify=False # remove this line when using real SSL certs
-      )
+#     url = request.url.replace(APP_HOST, KUBERNETES_UI_HOST).replace('http://', 'https://')
+#     try: 
+#       resp = requests.request(
+#           method=request.method,
+#           url=url,
+#           headers=new_headers,
+#           data=request.get_data(),
+#           cookies=request.cookies,
+#           allow_redirects=False,
+#           verify=False # remove this line when using real SSL certs
+#       )
 
-      print("proxied: " + url + " - with status: " + str(resp.status_code))
-      excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
-      headers = [(name, value) for (name, value) in resp.raw.headers.items()
-                 if name.lower() not in excluded_headers]
+#       print("proxied: " + url + " - with status: " + str(resp.status_code))
+#       excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+#       headers = [(name, value) for (name, value) in resp.raw.headers.items()
+#                  if name.lower() not in excluded_headers]
 
-      response = Response(resp.content, resp.status_code, headers)
-      return response
+#       response = Response(resp.content, resp.status_code, headers)
+#       return response
 
-    except Exception as inst:
-      print(inst)
-      raise inst
-      #return 'error: ' + str(inst)
+#     except Exception as inst:
+#       print(inst)
+#       raise inst
+#       #return 'error: ' + str(inst)
 
 @APP.route('/kubectl')
 def kubectl():
