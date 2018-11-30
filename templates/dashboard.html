@@ -64,50 +64,20 @@
             {{ end }}
             </div>
 
-            {{ if .IDPCaURI }}
-            <h3>Copy IDP CA Certificate From URL</h3>
-        
-            <p>Copy this CA Certificate and download it to your .kube directory</p>
-            <div class="command">
-        
-              <button class="btn" style="float:right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
-              </button>
-              <pre><code>curl --create-dirs -s {{ .IDPCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt</code></pre>
-            </div>
-          {{ end }}
-        
-          {{ if .IDPCaPem }}
-            <h3>Copy IDP CA Certificate From PEM</h3>
-        
-            <p>Put the CA Certificate into your .kube directory</p>
-        
-            <div class="command">
-        
-              <button class="btn" style="float:right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
-              </button>
-              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
-              {{ .IDPCaPem }}
-              EOF</code></pre>
-            </div>
-          {{ end }}
-        
-        
-          {{ if .K8sCaURI }}
+          {{ if k8s_ca_uri }}
             <h3>Copy Kubernetes CA Certificate From URL</h3>
         
             <p>Copy this CA Certificate and download it to your .kube directory</p>
             <div class="command">
         
               <button class="btn" style="float: right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
               </button>
-              <pre><code>curl --create-dirs -s {{ .K8sCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt</code></pre>
+              <pre><code>curl --create-dirs -s {{ k8s_ca_uri }} -o ${HOME}/.kube/certs/{{ k8s_ui_host }}/k8s-ca.crt</code></pre>
             </div>
           {{ end }}
         
-          {{ if .K8sCaPem }}
+          {{ if k8s_ca }}
             <h3>Copy Kubernetes CA Certificate From PEM</h3>
         
             <p>Put the CA Certificate into your .kube directory</p>
@@ -115,10 +85,10 @@
             <div class="command">
         
               <button class="btn" style="float:right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
               </button>
-              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt
-        {{ .K8sCaPem }}
+              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ k8s_ui_host }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ k8s_ui_host }}/k8s-ca.crt
+        {{ k8s_ca }}
         EOF</code></pre>
             </div>
           {{ end }}
@@ -130,46 +100,123 @@
           <div class="command">
         
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
             </button>
-          <pre><code>kubectl config set-cluster {{ .ClusterName }} \
-            --certificate-authority=${HOME}/.kube/certs/{{ .ClusterName}}/k8s-ca.crt \
-            --server={{ .K8sMasterURI }}</code></pre>
+          <pre><code>kubectl config set-cluster {{ k8s_ui_host }} \
+            --certificate-authority=${HOME}/.kube/certs/{{ k8s_ui_host}}/k8s-ca.crt \
+            --server={{ k8s_ui_host }}</code></pre>
           </div>
         
           <div class="command">
         
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
             </button>
-          <pre><code>kubectl config set-credentials {{ .Username }}-{{ .ClusterName }} \
+          <pre><code>kubectl config set-credentials {{ userinfo['name'] }}-{{ k8s_ui_host }} \
             --auth-provider=oidc \
-            --auth-provider-arg=idp-issuer-url={{ .Issuer }} \
-            --auth-provider-arg=client-id={{ .ClientID }} \
-            --auth-provider-arg=client-secret={{ .ClientSecret }} \
-            --auth-provider-arg=refresh-token={{ .RefreshToken }} \
-            --auth-provider-arg=id-token={{ .IDToken }}
-          {{- if or (.IDPCaURI) (.IDPCaPem) }} \
-            --auth-provider-arg=idp-certificate-authority=${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
-          {{- end }}</code></pre>
+            --auth-provider-arg=idp-issuer-url={{ issuer }} \
+            --auth-provider-arg=client-id= \
+            --auth-provider-arg=client-secret= \
+            --auth-provider-arg=id-token={{ id_token }}
           </div>
         
           <div class="command">
         
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
             </button>
-            <pre><code class="hljs">kubectl config set-context {{ .Username }}-{{ .ClusterName }} \
-            --cluster={{ .ClusterName }} \
-            --user={{ .Username}}-{{.ClusterName }}</code></pre>
+            <pre><code class="hljs">kubectl config set-context {{ userinfo['name'] }}-{{ k8s_ui_host }} \
+            --cluster={{ k8s_ui_host }} \
+            --user={{ userinfo['name'] }}-{{ k8s_ui_host }}</code></pre>
           </div>
         
           <div class="command">
         
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
             </button>
-            <pre><code class="hljs">kubectl config use-context {{ .Username }}-{{ .ClusterName}}</code></pre>
+            <pre><code class="hljs">kubectl config use-context {{ userinfo['name'] }}-{{ k8s_ui_host }}</code></pre>
+          </div>
+
+          <h3>Avto update token</h3>
+        
+          <p>Create file into your HOME directory</p>
+      
+          <div class="command">
+      
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+            </button>
+            <pre><code>
+                #!/usr/bin/python3
+
+                from os import environ as env
+                from dotenv import load_dotenv, find_dotenv
+                from jose import jwt
+                from six.moves.urllib.request import urlopen
+                from os.path import expanduser
+                
+                import getpass
+                import requests
+                import json
+                import sys
+                
+                ENV_FILE = find_dotenv()
+                if ENV_FILE:
+                    load_dotenv(ENV_FILE)
+                
+                AUTH0_CLIENT_ID = env.get('AUTH0_CLIENT_ID')
+                AUTH0_DOMAIN = env.get('AUTH0_DOMAIN')
+                APP_HOST = env.get('APP_HOST')
+                HOME = expanduser("~")
+                
+                def auth():
+                  sys.stderr.write("Login: ") 
+                  login = input() 
+                  password = getpass.getpass()
+                
+                  r = requests.get("http://"+APP_HOST+"/kubectl?username="+login+"&password="+password)
+                
+                  resp = json.loads(r.text)
+                
+                  if 'error' in resp:
+                
+                    print("There was an auth0 error: "+resp['error']+": "+resp['error_description'])
+                
+                  else:
+                
+                    id_token = resp['id_token']
+                
+                    jwks = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
+                
+                    with open(HOME+'/.kube/jwks.json', 'w') as f: f.write (jwks.read().decode('utf-8'))
+                    with open(HOME+'/.kube/id_token', 'w') as f: f.write (id_token)
+                
+                    print(id_token) 
+                
+                def main():
+                  try:
+                    with open(HOME+'/.kube/jwks.json', 'r') as content_file: jwks = content_file.read()
+                    with open(HOME+'/.kube/id_token', 'r') as content_file: id_token = content_file.read()
+                
+                    payload = jwt.decode(id_token, jwks, algorithms=['RS256'],
+                                       audience=AUTH0_CLIENT_ID, issuer="https://"+AUTH0_DOMAIN+"/")
+                    
+                    print(id_token) 
+                  except OSError as e:
+                    auth()
+                  except jwt.ExpiredSignatureError as e:
+                    auth()
+                  except jwt.JWTClaimsError as e:
+                    auth()
+                
+                
+                if __name__ == '__main__':
+                  main()
+                
+            </code></pre>
+
+
           </div>
 
         </div>
@@ -221,7 +268,7 @@
             <div class="command">
         
               <button class="btn" style="float:right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
               </button>
         
               <pre><code>curl --create-dirs -s {{ .IDPCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt</code></pre>
@@ -235,7 +282,7 @@
             <div class="command">
         
               <button class="btn" style="float:right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
               </button>
         
               <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
@@ -252,13 +299,13 @@
             <div class="command">
         
               <button class="btn" style="float: right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
               </button>
               <pre><code>curl --create-dirs -s {{ .K8sCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt</code></pre>
             </div>
           {{ end }}
         
-          {{ if .K8sCaPem }}
+          {{ if k8s_ca }}
             <h3>Copy Kubernetes CA Certificate From PEM</h3>
         
             <p>Put the CA Certificate into your .kube directory</p>
@@ -266,10 +313,10 @@
             <div class="command">
         
               <button class="btn" style="float:right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
               </button>
               <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt
-        {{ .K8sCaPem }}
+        {{ k8s_ca }}
         EOF</code></pre>
             </div>
           {{ end }}
@@ -281,7 +328,7 @@
           <div class="command">
         
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
             </button>
           <pre><code>kubectl config set-cluster {{ .ClusterName }} --certificate-authority=${HOME}/.kube/certs/{{ .ClusterName}}/k8s-ca.crt --server={{ .K8sMasterURI }}</code></pre>
           </div>
@@ -289,7 +336,7 @@
           <div class="command">
         
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
             </button>
           <pre><code>kubectl config set-credentials {{ .Username }}-{{ .ClusterName }} --auth-provider=oidc --auth-provider-arg=idp-issuer-url={{ .Issuer }} --auth-provider-arg=client-id={{ .ClientID }} --auth-provider-arg=client-secret={{ .ClientSecret }} --auth-provider-arg=refresh-token={{ .RefreshToken }} --auth-provider-arg=id-token={{ .IDToken }}
           {{- if or (.IDPCaURI) (.IDPCaPem) }} --auth-provider-arg=idp-certificate-authority=${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
@@ -298,14 +345,14 @@
           <div class="command">
         
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
             </button>
             <pre><code class="hljs">kubectl config set-context {{ .Username }}-{{ .ClusterName }} --cluster={{ .ClusterName }} --user={{ .Username}}-{{.ClusterName }}</code></pre>
           </div>
         
           <div class="command">
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="{{ .Web_Path_Prefix }}static/clippy.svg" alt=""/>
+              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
             </button>
             <pre><code class="hljs">kubectl config use-context {{ .Username }}-{{ .ClusterName}}</code></pre>
           </div>

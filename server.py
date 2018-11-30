@@ -39,7 +39,7 @@ APP_HOST = env.get(constants.APP_HOST)
 KUBERNETES_UI_HOST = env.get(constants.KUBERNETES_UI_HOST)
 K8S_CA = env.get(constants.K8S_CA)
 LOGO_URL = env.get(constants.LOGO_URL)
-KUBECTL_VERSION = env.get(constants.KUBECTL_VERSION)
+KUBECTL_VERSION = requests.get("https://storage.googleapis.com/kubernetes-release/release/stable.txt").text[:-1]
 
 APP = Flask(__name__, static_url_path='/public', static_folder='./public')
 APP.secret_key = constants.SECRET_KEY
@@ -138,7 +138,9 @@ def dashboard():
                            userinfo_pretty=json.dumps(session[constants.JWT_PAYLOAD], indent=4),
                            logo_url=LOGO_URL, 
                            k8s_ui_host=KUBERNETES_UI_HOST,
-                           kubectl_version=KUBECTL_VERSION )
+                           kubectl_version=KUBECTL_VERSION,
+                           k8s_ca=K8S_CA,
+                           issuer="https://"+AUTH0_DOMAIN+"/" )
 
 # @APP.route('/ui', defaults={'path': ''})
 # @APP.route('/api', defaults={'path': ''})
