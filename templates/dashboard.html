@@ -16,11 +16,11 @@
 
 <body class="theme-body">
   <div class="theme-navbar">
-    {{ if logo_url }}
+    {% if logo_url %}
     <div class="theme-navbar__logo-wrap">
         <img class="theme-navbar__logo" src="{{ logo_url }}"/>
     </div>
-    {{ end }}
+    {% endif %}
   </div>
 
   <div class="dex-kubeconfig-container">
@@ -54,17 +54,17 @@
             <a title="Install and setup kubectl" href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">
               https://kubernetes.io/docs/tasks/tools/install-kubectl
             </a>
-            {{ if kubectl_version }}
+            {% if kubectl_version %}
             <p>
             Download kubectl:
             <a title="Download kubectl" href="https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl">
               https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl
             </a>
             </p>
-            {{ end }}
+            {% endif %}
             </div>
 
-          {{ if k8s_ca_uri }}
+          {% if k8s_ca_uri %}
             <h3>Copy Kubernetes CA Certificate From URL</h3>
         
             <p>Copy this CA Certificate and download it to your .kube directory</p>
@@ -75,9 +75,9 @@
               </button>
               <pre><code>curl --create-dirs -s {{ k8s_ca_uri }} -o ${HOME}/.kube/certs/{{ k8s_ui_host }}/k8s-ca.crt</code></pre>
             </div>
-          {{ end }}
+          {% endif %}
         
-          {{ if k8s_ca }}
+          {% if k8s_ca %}
             <h3>Copy Kubernetes CA Certificate From PEM</h3>
         
             <p>Put the CA Certificate into your .kube directory</p>
@@ -91,7 +91,7 @@
         {{ k8s_ca }}
         EOF</code></pre>
             </div>
-          {{ end }}
+          {% endif %}
         
           <h3>Run configuration commands</h3>
         
@@ -138,84 +138,56 @@
             <pre><code class="hljs">kubectl config use-context {{ userinfo['name'] }}-{{ k8s_ui_host }}</code></pre>
           </div>
 
-          <h3>Avto update token</h3>
+          <h3>CLI update token</h3>
         
-          <p>Create file into your HOME directory</p>
+          <p>Copy and create file cli_auth.py</p>
       
           <div class="command">
       
             <button class="btn" style="float:right" data-clipboard-snippet="">
               <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
             </button>
-            <pre><code>
-                #!/usr/bin/python3
+            <pre><code> mkdir -p ${HOME}/.kube/cli_auth/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/cli_auth.py
+              {{ cli_auth }}
+         EOF</code></pre>
+          </div>
 
-                from os import environ as env
-                from dotenv import load_dotenv, find_dotenv
-                from jose import jwt
-                from six.moves.urllib.request import urlopen
-                from os.path import expanduser
-                
-                import getpass
-                import requests
-                import json
-                import sys
-                
-                ENV_FILE = find_dotenv()
-                if ENV_FILE:
-                    load_dotenv(ENV_FILE)
-                
-                AUTH0_CLIENT_ID = env.get('AUTH0_CLIENT_ID')
-                AUTH0_DOMAIN = env.get('AUTH0_DOMAIN')
-                APP_HOST = env.get('APP_HOST')
-                HOME = expanduser("~")
-                
-                def auth():
-                  sys.stderr.write("Login: ") 
-                  login = input() 
-                  password = getpass.getpass()
-                
-                  r = requests.get("http://"+APP_HOST+"/kubectl?username="+login+"&password="+password)
-                
-                  resp = json.loads(r.text)
-                
-                  if 'error' in resp:
-                
-                    print("There was an auth0 error: "+resp['error']+": "+resp['error_description'])
-                
-                  else:
-                
-                    id_token = resp['id_token']
-                
-                    jwks = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
-                
-                    with open(HOME+'/.kube/jwks.json', 'w') as f: f.write (jwks.read().decode('utf-8'))
-                    with open(HOME+'/.kube/id_token', 'w') as f: f.write (id_token)
-                
-                    print(id_token) 
-                
-                def main():
-                  try:
-                    with open(HOME+'/.kube/jwks.json', 'r') as content_file: jwks = content_file.read()
-                    with open(HOME+'/.kube/id_token', 'r') as content_file: id_token = content_file.read()
-                
-                    payload = jwt.decode(id_token, jwks, algorithms=['RS256'],
-                                       audience=AUTH0_CLIENT_ID, issuer="https://"+AUTH0_DOMAIN+"/")
-                    
-                    print(id_token) 
-                  except OSError as e:
-                    auth()
-                  except jwt.ExpiredSignatureError as e:
-                    auth()
-                  except jwt.JWTClaimsError as e:
-                    auth()
-                
-                
-                if __name__ == '__main__':
-                  main()
-                
-            </code></pre>
+          <p>Copy and create file requirements.txt</p>
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="/public/clippy.svg" alt="">
+              </button>
+              <pre><code class="hljs"> cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/requirements.txt
+                {{ cli_requirements }}
+           EOF</code></pre>
+            </div>
 
+            <p>Install requirements and make alias</p>
+      
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+              </button>
+              <pre><code> pip3 install -r ${HOME}/.kube/cli_auth/requirements.txt &amp;&amp; \
+                alias kubectl="kubectl --token=\$(~/.kube/cli_auth/cli_auth.py)"
+           EOF</code></pre>
+            </div>
+
+            <p>Copy and create file .env with right config</p>
+      
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+              </button>
+              <pre><code> cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/.env
+                AUTH0_CLIENT_ID = {{ auth0_client_id }}
+                AUTH0_DOMAIN = {{ auth0_domain }}
+                APP_HOST = {{ app_host }}
+           EOF</code></pre>
+            </div>
 
           </div>
 
@@ -229,16 +201,140 @@
             <a title="Install and setup kubectl" href="https://kubernetes.io/docs/tasks/tools/install-kubectl/">
               https://kubernetes.io/docs/tasks/tools/install-kubectl
             </a>
-            {{ if .KubectlVersion }}
+            {% if kubectl_version %}
             <p>
             Download kubectl:
-            <a title="Download kubectl" href="https://storage.googleapis.com/kubernetes-release/release/{{.KubectlVersion}}/bin/darwin/amd64/kubectl">
-              https://storage.googleapis.com/kubernetes-release/release/{{.KubectlVersion}}/bin/darwin/amd64/kubectl
+            <a title="Download kubectl" href="https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/darwin/amd64/kubectl">
+              https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/darwin/amd64/kubectl
             </a>
             </p>
-            {{ end }}
+            {% endif %}
             </div>
-            {{ template "linux-mac-common" . }
+
+            {% if k8s_ca_uri %}
+            <h3>Copy Kubernetes CA Certificate From URL</h3>
+        
+            <p>Copy this CA Certificate and download it to your .kube directory</p>
+            <div class="command">
+        
+              <button class="btn" style="float: right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+              </button>
+              <pre><code>curl --create-dirs -s {{ k8s_ca_uri }} -o ${HOME}/.kube/certs/{{ k8s_ui_host }}/k8s-ca.crt</code></pre>
+            </div>
+          {% endif %}
+        
+          {% if k8s_ca %}
+            <h3>Copy Kubernetes CA Certificate From PEM</h3>
+        
+            <p>Put the CA Certificate into your .kube directory</p>
+        
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+              </button>
+              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ k8s_ui_host }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ k8s_ui_host }}/k8s-ca.crt
+        {{ k8s_ca }}
+        EOF</code></pre>
+            </div>
+          {% endif %}
+        
+          <h3>Run configuration commands</h3>
+        
+          <p>These commands will update <tt>~/.kube/config</tt></p>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
+            </button>
+          <pre><code>kubectl config set-cluster {{ k8s_ui_host }} \
+            --certificate-authority=${HOME}/.kube/certs/{{ k8s_ui_host}}/k8s-ca.crt \
+            --server={{ k8s_ui_host }}</code></pre>
+          </div>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+            </button>
+          <pre><code>kubectl config set-credentials {{ userinfo['name'] }}-{{ k8s_ui_host }} \
+            --auth-provider=oidc \
+            --auth-provider-arg=idp-issuer-url={{ issuer }} \
+            --auth-provider-arg=client-id= \
+            --auth-provider-arg=client-secret= \
+            --auth-provider-arg=id-token={{ id_token }}
+          </div>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
+            </button>
+            <pre><code class="hljs">kubectl config set-context {{ userinfo['name'] }}-{{ k8s_ui_host }} \
+            --cluster={{ k8s_ui_host }} \
+            --user={{ userinfo['name'] }}-{{ k8s_ui_host }}</code></pre>
+          </div>
+        
+          <div class="command">
+        
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+            </button>
+            <pre><code class="hljs">kubectl config use-context {{ userinfo['name'] }}-{{ k8s_ui_host }}</code></pre>
+          </div>
+
+          <h3>CLI update token</h3>
+        
+          <p>Copy and create file cli_auth.py</p>
+      
+          <div class="command">
+      
+            <button class="btn" style="float:right" data-clipboard-snippet="">
+              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+            </button>
+            <pre><code> mkdir -p ${HOME}/.kube/cli_auth/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/cli_auth.py
+              {{ cli_auth }}
+         EOF</code></pre>
+          </div>
+
+          <p>Copy and create file requirements.txt</p>
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="/public/clippy.svg" alt="">
+              </button>
+              <pre><code class="hljs"> cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/requirements.txt
+                {{ cli_requirements }}
+           EOF</code></pre>
+            </div>
+
+            <p>Install requirements and make alias</p>
+      
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+              </button>
+              <pre><code> pip3 install -r ${HOME}/.kube/cli_auth/requirements.txt &amp;&amp; \
+                alias kubectl="kubectl --token=\$(~/.kube/cli_auth/cli_auth.py)"
+           EOF</code></pre>
+            </div>
+
+            <p>Copy and create file .env with right config</p>
+      
+            <div class="command">
+        
+              <button class="btn" style="float:right" data-clipboard-snippet="">
+                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+              </button>
+              <pre><code> cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/.env
+                AUTH0_CLIENT_ID = {{ auth0_client_id }}
+                AUTH0_DOMAIN = {{ auth0_domain }}
+                APP_HOST = {{ app_host }}
+           EOF</code></pre>
+            </div>
 
         </div>
         
@@ -251,115 +347,17 @@
               https://kubernetes.io/docs/tasks/tools/install-kubectl
             </a>
         
-            {{ if .KubectlVersion }}
+            {% if kubectl_version %}
             <p>
             Download kubectl:
-            <a title="Download kubectl" href="https://storage.googleapis.com/kubernetes-release/release/{{.KubectlVersion}}/bin/windows/amd64/kubectl.exe">
-              https://storage.googleapis.com/kubernetes-release/release/{{.KubectlVersion}}/bin/windows/amd64/kubectl.exe
+            <a title="Download kubectl" href="https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/windows/amd64/kubectl.exe">
+              https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/windows/amd64/kubectl.exe
             </a>
             </p>
-            {{ end }}
+            {% endif %}
           </div>
         
-          {{ if .IDPCaURI }}
-            <h3>Copy IDP CA Certificate From URL</h3>
-        
-            <p>Copy this CA Certificate and download it to your .kube directory</p>
-            <div class="command">
-        
-              <button class="btn" style="float:right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
-              </button>
-        
-              <pre><code>curl --create-dirs -s {{ .IDPCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt</code></pre>
-            </div>
-          {{ end }}
-        
-          {{ if .IDPCaPem }}
-            <h3>Copy IDP CA From Pem</h3>
-        
-            <p>Put the CA Certificate into your .kube directory</p>
-            <div class="command">
-        
-              <button class="btn" style="float:right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
-              </button>
-        
-              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
-        {{ .IDPCaPem}}
-        EOF</code></pre>
-            </div>
-          {{ end }}
-        
-        
-          {{ if .K8sCaURI }}
-            <h3>Copy Kubernetes CA Certificate From URL</h3>
-        
-            <p>Copy this CA Certificate and download it to your .kube directory</p>
-            <div class="command">
-        
-              <button class="btn" style="float: right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
-              </button>
-              <pre><code>curl --create-dirs -s {{ .K8sCaURI }} -o ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt</code></pre>
-            </div>
-          {{ end }}
-        
-          {{ if k8s_ca }}
-            <h3>Copy Kubernetes CA Certificate From PEM</h3>
-        
-            <p>Put the CA Certificate into your .kube directory</p>
-        
-            <div class="command">
-        
-              <button class="btn" style="float:right" data-clipboard-snippet="">
-                <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
-              </button>
-              <pre><code>mkdir -p ${HOME}/.kube/certs/{{ .ClusterName }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ .ClusterName }}/k8s-ca.crt
-        {{ k8s_ca }}
-        EOF</code></pre>
-            </div>
-          {{ end }}
-        
-          <h3>Run configuration commands</h3>
-        
-          <p>These commands will update <tt>~/.kube/config</tt></p>
-        
-          <div class="command">
-        
-            <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
-            </button>
-          <pre><code>kubectl config set-cluster {{ .ClusterName }} --certificate-authority=${HOME}/.kube/certs/{{ .ClusterName}}/k8s-ca.crt --server={{ .K8sMasterURI }}</code></pre>
-          </div>
-        
-          <div class="command">
-        
-            <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
-            </button>
-          <pre><code>kubectl config set-credentials {{ .Username }}-{{ .ClusterName }} --auth-provider=oidc --auth-provider-arg=idp-issuer-url={{ .Issuer }} --auth-provider-arg=client-id={{ .ClientID }} --auth-provider-arg=client-secret={{ .ClientSecret }} --auth-provider-arg=refresh-token={{ .RefreshToken }} --auth-provider-arg=id-token={{ .IDToken }}
-          {{- if or (.IDPCaURI) (.IDPCaPem) }} --auth-provider-arg=idp-certificate-authority=${HOME}/.kube/certs/{{ .ClusterName }}/idp-ca.crt
-          {{- end }}</code></pre>
-          </div>
-          <div class="command">
-        
-            <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
-            </button>
-            <pre><code class="hljs">kubectl config set-context {{ .Username }}-{{ .ClusterName }} --cluster={{ .ClusterName }} --user={{ .Username}}-{{.ClusterName }}</code></pre>
-          </div>
-        
-          <div class="command">
-            <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
-            </button>
-            <pre><code class="hljs">kubectl config use-context {{ .Username }}-{{ .ClusterName}}</code></pre>
-          </div>
-
         </div>
-    </div>
-  </div>
 
   <script src="/public/highlight.pack.min.js"></script>
   <script src="/public/clipboard.min.js"></script>
