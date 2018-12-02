@@ -26,7 +26,7 @@
   <div class="dex-kubeconfig-container">
     <div class="theme-panel">
       <div style="float:right">
-        <a href="/login">Login Again</a>
+        <a href="/logout">Logout</a>
       </div>
       <h2 class="theme-heading">Generated Kubernetes Token - {{ k8s_ui_host }}</h2>
 
@@ -38,6 +38,16 @@
 
         <div class="groups">
         <pre><code>{{ userinfo_pretty }}</code></pre>
+        </div>
+
+        <p>Your token:
+        </p>
+
+        <div class="command">
+          <button class="btn" style="float:right" data-clipboard-snippet="">
+            <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+          </button>
+          <pre><code>{{ id_token }}</code></pre>
         </div>
 
         <div class="tab">
@@ -88,8 +98,8 @@
                 <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
               </button>
               <pre><code>mkdir -p ${HOME}/.kube/certs/{{ k8s_ui_host }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ k8s_ui_host }}/k8s-ca.crt
-        {{ k8s_ca }}
-        EOF</code></pre>
+              {{ k8s_ca }}
+           EOF</code></pre>
             </div>
           {% endif %}
         
@@ -114,10 +124,8 @@
             </button>
           <pre><code>kubectl config set-credentials {{ userinfo['name'] }}-{{ k8s_ui_host }} \
             --auth-provider=oidc \
-            --auth-provider-arg=idp-issuer-url={{ issuer }} \
-            --auth-provider-arg=client-id= \
-            --auth-provider-arg=client-secret= \
-            --auth-provider-arg=id-token={{ id_token }}
+            --auth-provider-arg=idp-issuer-url={{ issuer }} 
+          </code></pre>
           </div>
         
           <div class="command">
@@ -172,7 +180,7 @@
               </button>
               <pre><code> pip3 install -r ${HOME}/.kube/cli_auth/requirements.txt &amp;&amp; \
                 alias kubectl="kubectl --token=\$(~/.kube/cli_auth/cli_auth.py)"
-           EOF</code></pre>
+              </code></pre>
             </div>
 
             <p>Copy and create file .env with right config</p>
@@ -319,7 +327,7 @@
               </button>
               <pre><code> pip3 install -r ${HOME}/.kube/cli_auth/requirements.txt &amp;&amp; \
                 alias kubectl="kubectl --token=\$(~/.kube/cli_auth/cli_auth.py)"
-           EOF</code></pre>
+              </code></pre>
             </div>
 
             <p>Copy and create file .env with right config</p>

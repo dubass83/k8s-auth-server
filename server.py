@@ -37,11 +37,11 @@ AUTH0_AUDIENCE = env.get(constants.API_ID)
 AUTH0_CONNECTION = env.get(constants.AUTH0_CONNECTION)
 APP_HOST = env.get(constants.APP_HOST)
 KUBERNETES_UI_HOST = env.get(constants.KUBERNETES_UI_HOST)
-K8S_CA = env.get(constants.K8S_CA)
-LOGO_URL = env.get(constants.LOGO_URL)
+K8S_CA = constants.K8S_CA
+LOGO_URL = constants.LOGO_URL
 KUBECTL_VERSION = requests.get("https://storage.googleapis.com/kubernetes-release/release/stable.txt").text[:-1]
-CLI_AUTH = env.get(constants.CLI_AUTH)
-CLI_REQUIREMENTS = env.get(constants.CLI_REQUIREMENTS)
+CLI_AUTH = constants.CLI_AUTH
+CLI_REQUIREMENTS = constants.CLI_REQUIREMENTS
 
 APP = Flask(__name__, static_url_path='/public', static_folder='./public')
 APP.secret_key = constants.SECRET_KEY
