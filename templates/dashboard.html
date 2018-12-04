@@ -98,8 +98,8 @@
                 <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
               </button>
               <pre><code>mkdir -p ${HOME}/.kube/certs/{{ k8s_ui_host }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ k8s_ui_host }}/k8s-ca.crt
-              {{ k8s_ca }}
-           EOF</code></pre>
+{{ k8s_ca }}
+EOF</code></pre>
             </div>
           {% endif %}
         
@@ -114,28 +114,20 @@
             </button>
           <pre><code>kubectl config set-cluster {{ k8s_ui_host }} \
             --certificate-authority=${HOME}/.kube/certs/{{ k8s_ui_host}}/k8s-ca.crt \
-            --server={{ k8s_ui_host }}</code></pre>
-          </div>
-        
-          <div class="command">
-        
-            <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
-            </button>
-          <pre><code>kubectl config set-credentials {{ userinfo['name'] }}-{{ k8s_ui_host }} \
-            --auth-provider=oidc \
-            --auth-provider-arg=idp-issuer-url={{ issuer }} 
+            --server={{ k8s_ui_host }}
           </code></pre>
           </div>
         
+       
           <div class="command">
         
             <button class="btn" style="float:right" data-clipboard-snippet="">
               <img class="clippy" width="13" src="/public/clippy.svg" alt="">
             </button>
-            <pre><code class="hljs">kubectl config set-context {{ userinfo['name'] }}-{{ k8s_ui_host }} \
+            <pre><code class="hljs">kubectl config set-context {{ userinfo['name'] }} \
             --cluster={{ k8s_ui_host }} \
-            --user={{ userinfo['name'] }}-{{ k8s_ui_host }}</code></pre>
+            --user={{ userinfo['name'] }}
+          </code></pre>
           </div>
         
           <div class="command">
@@ -151,13 +143,13 @@
           <p>Copy and create file cli_auth.py</p>
       
           <div class="command">
-      
+
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
             </button>
             <pre><code> mkdir -p ${HOME}/.kube/cli_auth/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/cli_auth.py
-              {{ cli_auth }}
-         EOF</code></pre>
+{{ cli_auth }}
+EOF</code></pre>
           </div>
 
           <p>Copy and create file requirements.txt</p>
@@ -167,8 +159,8 @@
                 <img class="clippy" width="13" src="/public/clippy.svg" alt="">
               </button>
               <pre><code class="hljs"> cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/requirements.txt
-                {{ cli_requirements }}
-           EOF</code></pre>
+{{ cli_requirements }}
+EOF</code></pre>
             </div>
 
             <p>Install requirements and make alias</p>
@@ -194,13 +186,11 @@
                 AUTH0_CLIENT_ID = {{ auth0_client_id }}
                 AUTH0_DOMAIN = {{ auth0_domain }}
                 APP_HOST = {{ app_host }}
-           EOF</code></pre>
+EOF</code></pre>
             </div>
 
           </div>
 
-        </div>
-          
         <div id="MacOS" class="tabcontent">
           
             <h3>Install and Set Up kubectl</h3>
@@ -243,8 +233,8 @@
                 <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
               </button>
               <pre><code>mkdir -p ${HOME}/.kube/certs/{{ k8s_ui_host }}/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/certs/{{ k8s_ui_host }}/k8s-ca.crt
-        {{ k8s_ca }}
-        EOF</code></pre>
+{{ k8s_ca }}
+EOF</code></pre>
             </div>
           {% endif %}
         
@@ -259,30 +249,20 @@
             </button>
           <pre><code>kubectl config set-cluster {{ k8s_ui_host }} \
             --certificate-authority=${HOME}/.kube/certs/{{ k8s_ui_host}}/k8s-ca.crt \
-            --server={{ k8s_ui_host }}</code></pre>
+            --server={{ k8s_ui_host }}
+          </code></pre>
           </div>
         
-          <div class="command">
-        
-            <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
-            </button>
-          <pre><code>kubectl config set-credentials {{ userinfo['name'] }}-{{ k8s_ui_host }} \
-            --auth-provider=oidc \
-            --auth-provider-arg=idp-issuer-url={{ issuer }} \
-            --auth-provider-arg=client-id= \
-            --auth-provider-arg=client-secret= \
-            --auth-provider-arg=id-token={{ id_token }}
-          </div>
-        
+       
           <div class="command">
         
             <button class="btn" style="float:right" data-clipboard-snippet="">
               <img class="clippy" width="13" src="/public/clippy.svg" alt="">
             </button>
-            <pre><code class="hljs">kubectl config set-context {{ userinfo['name'] }}-{{ k8s_ui_host }} \
+            <pre><code class="hljs">kubectl config set-context {{ userinfo['name'] }} \
             --cluster={{ k8s_ui_host }} \
-            --user={{ userinfo['name'] }}-{{ k8s_ui_host }}</code></pre>
+            --user={{ userinfo['name'] }}
+          </code></pre>
           </div>
         
           <div class="command">
@@ -298,13 +278,13 @@
           <p>Copy and create file cli_auth.py</p>
       
           <div class="command">
-      
+
             <button class="btn" style="float:right" data-clipboard-snippet="">
-              <img class="clippy" width="13" src="/public/clippy.svg" alt=""/>
+              <img class="clippy" width="13" src="/public/clippy.svg" alt="">
             </button>
             <pre><code> mkdir -p ${HOME}/.kube/cli_auth/ &amp;&amp; cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/cli_auth.py
-              {{ cli_auth }}
-         EOF</code></pre>
+{{ cli_auth }}
+EOF</code></pre>
           </div>
 
           <p>Copy and create file requirements.txt</p>
@@ -314,8 +294,8 @@
                 <img class="clippy" width="13" src="/public/clippy.svg" alt="">
               </button>
               <pre><code class="hljs"> cat &lt;&lt; EOF &gt; ${HOME}/.kube/cli_auth/requirements.txt
-                {{ cli_requirements }}
-           EOF</code></pre>
+{{ cli_requirements }}
+EOF</code></pre>
             </div>
 
             <p>Install requirements and make alias</p>
@@ -341,7 +321,7 @@
                 AUTH0_CLIENT_ID = {{ auth0_client_id }}
                 AUTH0_DOMAIN = {{ auth0_domain }}
                 APP_HOST = {{ app_host }}
-           EOF</code></pre>
+EOF</code></pre>
             </div>
 
         </div>
@@ -366,6 +346,7 @@
           </div>
         
         </div>
+    </div>>
 
   <script src="/public/highlight.pack.min.js"></script>
   <script src="/public/clipboard.min.js"></script>
